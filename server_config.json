@@ -9,6 +9,9 @@
                 "."
             ]
         },
+        "mcp-research-server": {
+            "url": "https://mcp-research-server-781af031787e.herokuapp.com/sse"
+        },
         "fetch": {
             "command": "uvx",
             "args": ["mcp-server-fetch"]

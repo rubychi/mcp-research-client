@@ -1,6 +1,10 @@
-# MCP: Build Rich-Context AI Apps with Anthropic (Chatbot Client)
+# MCP: Research (CLI Client)
 
-This project is a hands-on implementation inspired by the [DeepLearning.AI short course](https://www.deeplearning.ai/short-courses/mcp-build-rich-context-ai-apps-with-anthropic/) in partnership with Anthropic. It demonstrates how to use the Model Context Protocol (MCP) to build AI applications that can access tools, data, and prompts from external sources in a standardized way.
+This project is a hands-on implementation from the [MCP: Build Rich-Context AI Apps with Anthropic](https://www.deeplearning.ai/short-courses/mcp-build-rich-context-ai-apps-with-anthropic/).
+
+It demonstrates how to use the Model Context Protocol (MCP) to build AI applications that can access tools, data, and prompts from external sources in a standardized way.
+
+For the MCP server, see [mcp-research-server](https://github.com/rubychi/mcp-research-server).
 
 ## Overview
 
@@ -22,10 +26,10 @@ This project provides an MCP client chatbot that connects to MCP servers (as con
 ├── mcp_chatbot.py         # Main entry point: interactive MCP client chatbot
 ├── server_config.json     # MCP server connection configuration
 ├── pyproject.toml         # Project metadata and dependencies
-├── Procfile               # For deployment (e.g., Heroku)
 ├── uv.lock                # Dependency lock file
 ├── .python-version        # Python version specifier
 ├── .gitignore
+├── .env.example          # Example environment variable file
 └── README.md
 ```
 
@@ -33,30 +37,29 @@ This project provides an MCP client chatbot that connects to MCP servers (as con
 
 ### Prerequisites
 
-- Python 3.10 or higher
-- [uv](https://github.com/astral-sh/uv) (for dependency management, or use pip)
+- Python 3.11.11
+- [uv](https://github.com/astral-sh/uv) (for dependency management)
 
 ### Installation
 
 1. **Clone this repository:**
    ```bash
-   git clone <your-repo-url>
-   cd <your-repo-directory>
+   git clone git@github.com:rubychi/mcp-research-client.git
    ```
 
-2. **Install dependencies:**
+2. **Create a virtual environment:**
    ```bash
-   pip install -r requirements.txt
-   # or, if using uv:
-   uv pip install --system .
+   uv venv .venv
    ```
 
-3. **Configure MCP servers:**
-   - Edit `server_config.json` to specify the MCP servers you want to connect to.
+3. **Activate the environment:**
+   ```bash
+   source .venv/bin/activate
+   ```
 
 4. **Run the MCP Chatbot:**
    ```bash
-   python mcp_chatbot.py
+   uv run mcp_chatbot.py
    ```
 
 ### Usage
@@ -76,14 +79,10 @@ This project provides an MCP client chatbot that connects to MCP servers (as con
 ## Configuration
 
 - Edit `server_config.json` to add or modify MCP server connections.
-- The `Procfile` can be used for deployment platforms that support it (e.g., Heroku).
+- Copy `.env.example` to `.env` in the project root and fill in your values (e.g., `ANTHROPIC_API_KEY`).
 
 ## References
 
 - [Course: MCP: Build Rich-Context AI Apps with Anthropic (DeepLearning.AI)](https://www.deeplearning.ai/short-courses/mcp-build-rich-context-ai-apps-with-anthropic/)
 - [Anthropic](https://www.anthropic.com/)
 - [DeepLearning.AI](https://www.deeplearning.ai/)
-
-## License
-
-This project is for educational purposes, based on materials from DeepLearning.AI and Anthropic.
