@@ -1,11 +1,13 @@
 from dotenv import load_dotenv
 from anthropic import Anthropic
-from mcp import ClientSession
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 from mcp.client.sse import sse_client
 from contextlib import AsyncExitStack
 import json
 import asyncio
 import nest_asyncio
+import os
 
 nest_asyncio.apply()
 
@@ -24,37 +26,56 @@ class MCP_ChatBot:
 
     async def connect_to_server(self, server_name, server_config):
         try:
-            sse_transport = await self.exit_stack.enter_async_context(
-                   sse_client(url= "https://mcp-remote-research-fdb38242fe7a.herokuapp.com/sse" )
+            # Choose transport based on config type
+            if "command" in server_config:
+                # stdio-based server (e.g., local subprocess)
+                server_params = StdioServerParameters(
+                    command=server_config["command"],
+                    args=server_config.get("args", [])
                 )
-            read, write = sse_transport
+                transport = await self.exit_stack.enter_async_context(stdio_client(server_params))
+            
+            elif "url" in server_config:
+                # SSE-based server (e.g., remote Heroku)
+                transport = await self.exit_stack.enter_async_context(
+                    sse_client(url=server_config["url"])
+                )
+
+            else:
+                print(f"Invalid config for {server_name}, must contain 'command' or 'url'")
+                return
+
+            read, write = transport
             session = await self.exit_stack.enter_async_context(
                 ClientSession(read, write)
             )
             await session.initialize()
             
-            
             try:
                 # List available tools
+                existing_tool_names = {tool["name"] for tool in self.available_tools}
                 response = await session.list_tools()
                 for tool in response.tools:
-                    self.sessions[tool.name] = session
-                    self.available_tools.append({
-                        "name": tool.name,
-                        "description": tool.description,
-                        "input_schema": tool.inputSchema
-                    })
+                    if tool.name not in existing_tool_names:
+                        self.sessions[tool.name] = session
+                        self.available_tools.append({
+                            "name": tool.name,
+                            "description": tool.description,
+                            "input_schema": tool.inputSchema
+                        })
             
                 # List available prompts
+                existing_prompt_names = {p["name"] for p in self.available_prompts}
                 prompts_response = await session.list_prompts()
                 if prompts_response and prompts_response.prompts:
                     for prompt in prompts_response.prompts:
-                        self.sessions[prompt.name] = session
-                        self.available_prompts.append({
-                            "name": prompt.name,
-                            "description": prompt.description,
-                            "arguments": prompt.arguments
-                        })
+                        if prompt.name not in existing_prompt_names:
+                            self.sessions[prompt.name] = session
+                            self.available_prompts.append({
+                                "name": prompt.name,
+                                "description": prompt.description,
+                                "arguments": prompt.arguments
+                            })
                 # List available resources
                 resources_response = await session.list_resources()
                 if resources_response and resources_response.resources:
